@@ -4,6 +4,7 @@
 #include <time.h>
 #include <Wire.h>
 #include <BlynkSimpleEsp8266.h>
+#include <EEPROM.h>
 
 //___________Smart Config_______________
 
@@ -14,6 +15,10 @@
 #define LED_TOGGLE() digitalWrite(PIN_LED, digitalRead(PIN_LED) ^ 0x01)
 
 Ticker ticker;
+
+String wifiSSID;
+String wifiPass;
+
 
 bool longPress()
 {
@@ -51,18 +56,7 @@ void exit_smart()
 }
 
 
-void getWifiInfo(){
-  String str =WiFi.psk();    
-  char pass[str.length()+1];
-  strcpy(pass, str.c_str());
-  str =WiFi.SSID();
-  char ssid[str.length()+1];
-  strcpy(ssid, str.c_str());
-  Serial.print("ssid: ");
-  Serial.println(ssid);
-  Serial.print("pass: ");
-  Serial.println(pass);
-}
+
 
 //___________Blynk____________
 #define BLYNK_TEMPLATE_ID "TMPLULSEfJ_m"
@@ -72,10 +66,8 @@ void getWifiInfo(){
 #define BLYNK_PRINT Serial
 
 char auth[] = BLYNK_AUTH_TOKEN;
-// Your WiFi credentials.
-// Set password to "" for open networks.
-char ssid[] = "NGAN QUYNH 18-21";
-char pass[] = "nganquynh012018";
+
+
 
 BlynkTimer timer;
 
@@ -101,6 +93,18 @@ BLYNK_WRITE(V1){
  //Wire.requestFrom(8, 1); /* request & read data of size 13 from slave */
  
 }
+BLYNK_WRITE(V2){
+  int t15 = param.asInt();
+  Serial.println(t15);
+  Wire.beginTransmission(8); /* begin with device address 8 */
+  Wire.write(15);
+  Wire.write(t15);  /* sends hello slave string */
+  Wire.endTransmission();    /* stop transmitting */
+ 
+ //Wire.requestFrom(8, 1); /* request & read data of size 13 from slave */
+ 
+}
+
 BLYNK_CONNECTED()
 {
   // Change Web Link Button message to "Congratulations!"
@@ -118,22 +122,84 @@ void myTimerEvent()
 void setup() {
   Serial.begin(9600);
   Serial.setDebugOutput(true);
+  EEPROM.begin(512);
+  int add=0;
+  int startAdd=0;
+  int ssid_len = int(EEPROM.read(add));
+  add++;  
+  startAdd=add;
+  wifiSSID="";
+  for(int i=0; i<ssid_len;i++){
+    wifiSSID = wifiSSID + char(EEPROM.read(startAdd+i));
+    add++;
+  }
+
+  int pass_len = int(EEPROM.read(add));
+  add++;
+  startAdd=add;
+  wifiPass="";
+  for(int i=0; i<pass_len;i++){
+    wifiPass = wifiPass + char(EEPROM.read(startAdd+i));
+    add++;
+  }
+  char ssid[wifiSSID.length()+1];
+  char pass[wifiPass.length()+1];
+  strcpy(ssid, wifiSSID.c_str());
+  strcpy(pass, wifiPass.c_str());
+
+  Serial.print("ssid: ");
+  Serial.println(ssid);
+  Serial.print("pass: ");
+  Serial.println(pass);
+
+  
+
+  
   //For Smart config
   pinMode(PIN_LED, OUTPUT);
   pinMode(PIN_BUTTON, INPUT);
   ticker.attach(1, tick);
-  Serial.println("Setup done");
-  //For Blynk
+  
   Wire.begin(D1, D2);
+
+  //For Blynk
+ 
   // Blynk.begin(auth, ssid, pass);
   // You can also specify server:
-  Blynk.begin(auth, ssid, pass, "blynk.cloud", 80);
-  //Blynk.begin(auth, ssid, pass, IPAddress(192,168,1,100), 8080);
-  // Setup a function to be called every second
-  timer.setInterval(1000L, myTimerEvent);
-
+  Serial.println(sizeof(ssid));
+  if(sizeof(ssid)<=64){
+    WiFi.begin(ssid,pass);
+  
+    Blynk.begin(auth, ssid, pass);
+    //Blynk.begin(auth, ssid, pass, IPAddress(192,168,1,100), 8080);
+    // Setup a function to be called every second
+    timer.setInterval(1000L, myTimerEvent);
+  }
+  Serial.println("Setup done");
 }
 
+void getWifiInfo(){
+  int add=0;
+  int startAdd=0;
+  wifiSSID =WiFi.SSID();
+  wifiPass =WiFi.psk();
+
+  EEPROM.write(add,wifiSSID.length());
+  add++;
+  startAdd=add;
+  for(int i=0; i<wifiSSID.length();i++){
+    EEPROM.write(startAdd+i,wifiSSID[i]);
+    add++;
+  }
+  EEPROM.write(add,wifiPass.length());
+  add++;
+  startAdd=add;
+  for(int i=0; i<wifiPass.length();i++){
+    EEPROM.write(startAdd+i,wifiPass[i]);
+    add++;
+  }
+  EEPROM.commit();
+}
 
 void loop() {
   if (longPress()) {
@@ -158,6 +224,6 @@ void loop() {
       int c = Wire.read();
       Serial.println(c);
     }
-       
+    Serial.println("cncncn");
   }
 }
