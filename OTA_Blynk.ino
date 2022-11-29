@@ -22,6 +22,7 @@ String wifiPass;
 
 bool longPress()
 {
+  
   static int lastPress = 0;
   if (millis() - lastPress > 3000 && digitalRead(PIN_BUTTON) == 0) {
     return true;
@@ -70,7 +71,6 @@ char auth[] = BLYNK_AUTH_TOKEN;
 
 
 BlynkTimer timer;
-
 BLYNK_WRITE(V0){
   int spd = param.asInt();
   Serial.println(spd);
@@ -121,6 +121,7 @@ void myTimerEvent()
 
 void setup() {
   Serial.begin(9600);
+  Serial.println("1");
   Serial.setDebugOutput(true);
   EEPROM.begin(512);
   int add=0;
@@ -147,13 +148,14 @@ void setup() {
   strcpy(ssid, wifiSSID.c_str());
   strcpy(pass, wifiPass.c_str());
 
-  Serial.print("ssid: ");
-  Serial.println(ssid);
-  Serial.print("pass: ");
-  Serial.println(pass);
-
+  Serial.print("EEP ssid: ");
+  Serial.println(wifiSSID);
+  Serial.print("EEP pass: ");
+  Serial.println(wifiPass);
+  Serial.print("length ");
+  Serial.println(wifiPass.length());
   
-
+  
   
   //For Smart config
   pinMode(PIN_LED, OUTPUT);
@@ -161,20 +163,26 @@ void setup() {
   ticker.attach(1, tick);
   
   Wire.begin(D1, D2);
-
+  Serial.println("2");
   //For Blynk
  
   // Blynk.begin(auth, ssid, pass);
   // You can also specify server:
   Serial.println(sizeof(ssid));
-  if(sizeof(ssid)<=64){
-    WiFi.begin(ssid,pass);
   
+  if( wifiSSID !="" && wifiPass.length() <= 64){
+    Serial.println("3");
     Blynk.begin(auth, ssid, pass);
+    for (int i=0; i<1024;i++){
+
+    }
     //Blynk.begin(auth, ssid, pass, IPAddress(192,168,1,100), 8080);
     // Setup a function to be called every second
     timer.setInterval(1000L, myTimerEvent);
+    Serial.println("4");
   }
+    
+  EEPROM.end();
   Serial.println("Setup done");
 }
 
@@ -202,14 +210,10 @@ void getWifiInfo(){
 }
 
 void loop() {
-  if (longPress()) {
+  if (longPress() && !Blynk.connected()) {
     enter_smartconfig();
     Serial.println("Enter smartconfig");
   }
-  //Serial.println(digitalRead(PIN_BUTTON));
- 
-  
-  
   
   if (WiFi.status() == WL_CONNECTED && in_smartconfig && WiFi.smartConfigDone()) {
     exit_smart();
@@ -217,7 +221,7 @@ void loop() {
     getWifiInfo();
   }
   
-  if (WiFi.status() == WL_CONNECTED) {
+  if (WiFi.status() == WL_CONNECTED && Blynk.connected()) {
     Blynk.run();
     timer.run();
     while(Wire.available()){
