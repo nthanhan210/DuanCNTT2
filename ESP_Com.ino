@@ -59,26 +59,36 @@ char auth[] = BLYNK_AUTH_TOKEN;
 BlynkTimer timer;
 int spd=0;
 int dir=1;
+int power=0;
 char ssid[100];
 char pass[100];
 
 BLYNK_WRITE(V0){
-  // spd = param.asInt();
-  // Serial.println(spd);
+  int speed = param.asInt();
+  Serial.println(speed);
   Wire.beginTransmission(8);
-  Wire.write("speed"); 
-  Wire.write(param.asInt());
+  Wire.write("speed");
+  Wire.write(speed==0? 0:map(speed,1,10,75,255));
   Wire.endTransmission();
  //Wire.requestFrom(8, 1); /* request & read data of size 13 from slave */
- 
+}
+BLYNK_WRITE(V2){
+  int t15 = param.asInt();
+  Serial.println(t15);
+  Wire.beginTransmission(8);
+  Wire.write("power");
+  Wire.write(t15);
+  Wire.endTransmission();
+ //Wire.requestFrom(8, 1); /* request & read data of size 13 from slave */
 }
 BLYNK_WRITE(V1){
-  // dir = param.asInt();
-  // Serial.println(dir);
+  int direct = param.asInt();
+  Serial.println(direct);
   Wire.beginTransmission(8);
-  Wire.write("direct"); 
-  Wire.write(param.asInt());
+  Wire.write("direct");
+  Wire.write(direct);
   Wire.endTransmission();
+  
  
  //Wire.requestFrom(8, 1); /* request & read data of size 13 from slave */
  
@@ -97,19 +107,21 @@ void myTimerEvent()
 {
   // You can send any value at any time.
   // Please don't send more that 10 values per second.
-  
-  Blynk.virtualWrite(V0, spd);
-  Blynk.virtualWrite(V1, dir);
+  Wire.requestFrom(8,3);
+  Blynk.virtualWrite(V3,spd);
+  Blynk.virtualWrite(V1,dir);
 }
 
 //=================================================================================================
 
 
 
-
+//===============================================================
 
 void setup() {
-  Wire.begin(D1, D2);
+  
+  Wire.begin(D1,D2);
+
   Serial.begin(115200);
   Serial.setDebugOutput(true);
 
@@ -117,8 +129,6 @@ void setup() {
   pinMode(PIN_BUTTON, INPUT);
   
 
-  //WiFi.setAutoConnect(true);
-  //WiFi.setAutoReconnect(true);
   Serial.println(WiFi.SSID());
   Serial.println(WiFi.psk());
   
@@ -175,11 +185,15 @@ void loop() {
     }else {
     Blynk.connect();
     }
-    
-    while(Wire.available()){
+    while(Wire.available()>0){
+      power = Wire.read();
       dir = Wire.read();
       spd = Wire.read();
+      Serial.println(dir);
+      Serial.println(spd);      
     }
+    
+    
   }else {
     
     if(!ticker.active()){
