@@ -9,9 +9,11 @@
 #define MIN_SPEED 0
 #include <Wire.h>
 #include <Arduino.h>
+int power=0;
 int speed=0; //Tốc độ động cơ
+int a=0;
 int direct=0;  // Hướng quay động cơ
-
+int target_speed=0;
 void receiveEvent(int howMany) {
   String lable="";
   while (Wire.available()>1) {
@@ -20,27 +22,39 @@ void receiveEvent(int howMany) {
   int data = Wire.read();
   if (lable=="direct"){
     direct=data;
+    Serial.print( " receiveDirect " );
+    Serial.println(direct);
   }else if (lable=="speed") {
-    speed=data;
+    target_speed=data;
+    Serial.print("receivetgSpeed");
+    Serial.println(target_speed);
+  }else if (lable=="power") {
+    power=data;
+    Serial.print("receivePower");
+    Serial.println(power);
   }
-  Serial.print("Speed");
-  Serial.print(speed);
-  Serial.print( " Direct " );
-  Serial.println(direct);
-    
-
 }
+
 void requestEvent() {
+  Serial.print("send");
+  Serial.print(power);
+  Serial.print(direct);
+  Serial.println(speed);
+  Wire.write(power);
   Wire.write(direct);
   Wire.write(speed);  /*send string on request */
 }
-
+void updateInfo()
+{
+  
+}
 
 void setup() {
   // Setup môi trường
   Wire.begin(8);                /* join i2c bus with address 8 */
   Wire.onReceive(receiveEvent); /* register receive event */
   Wire.onRequest(requestEvent); /* register request event */
+  
   Serial.begin(115200);
   pinMode(POWER, INPUT_PULLUP);  //Nút nhấn tắt mở
   pinMode(22, OUTPUT);
@@ -117,17 +131,41 @@ void turn_Right(int spd){
   motor_Left(2,spd);
 }
 
-void loop() {  
-  if (direct == 1){
-    forward(speed);
-  }else if (direct == 2){
-    turn_Left(speed);
-  }else if (direct == 3){
-    backward(speed);
-  }else if (direct == 4){
-    turn_Right(speed);
+void loop() {
+    
+  if(power==1){
+    if (direct == 1){
+      forward(speed);
+    }else if (direct == 2){
+      turn_Left(speed);
+    }else if (direct == 3){
+      backward(speed);
+    }else if (direct == 4){
+      turn_Right(speed);
+    }else{
+      stop();
+    }
+    if(target_speed>0 && speed==0){
+      speed=75;
+    }else if(target_speed==0 && speed-5<75){
+      speed=0;
+    }else if(speed<target_speed-5){
+      speed+=5;
+    }else if(speed>target_speed+5){
+      speed-=5;
+    }else{
+      speed = target_speed;
+   }
   }else{
-    stop();
+    speed=0;
   }
+  if(speed<150){
+    a=300;
+  }else if(speed<200){
+    a=250;
+  }else{
+    a=100;
+  }
+  delay(a);
   
 }
