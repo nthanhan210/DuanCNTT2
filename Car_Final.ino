@@ -1,9 +1,9 @@
 //Khai báo các biến
 
-#define IN1	2
-#define IN2	3
-#define IN3	4
-#define IN4	5
+#define IN1	8
+#define IN2	9
+#define IN3	10
+#define IN4	11
 #define line1 44
 #define line2 46
 #define line3 48
@@ -12,7 +12,7 @@
 #define line6 53
 #define trig 36
 #define echo 38
-#define servo 6
+#define servo 12
 #define maximum_distance 150     // khoảng các lớn nhất cần đo
 #define minimum_distance 5      // khoảng các nhỏ nhất cần đo
 
@@ -24,8 +24,8 @@
 NewPing sonar(trig, echo,maximum_distance); //sensor function
 Servo servo_motor;
 
-int sensitive1[] = {15,75,110,170};     // độ nhạy cho cảm biến
-int sensitive2[] = {30,90,120,190};
+int sensitive1[] = {20,50,110,170};     // độ nhạy cho cảm biến
+int sensitive2[] = {30,60,120,190};
 int power,speed=0;    //Bật tắt và Tốc độ động cơ
 int avg=0;    // biến dò line
 int calib=0;  // biến hiệu chỉnh động cơ
@@ -287,9 +287,9 @@ void avoid_Obj(){       // Tránh vật cản
     distance = readPing(0);    
     while((getAvg()== 6 || flag_line==1 ) ){  // di chuyển giữ khoảng cách nhất định với vật thể đến khi gặp line
       int spd_L = 80;
-      int spd_R = 120;
+      int spd_R = 150;
       if (distance>100){
-        spd_R = 130;
+        spd_R = 170;
         spd_L = 80;
 
       }else 
@@ -302,7 +302,7 @@ void avoid_Obj(){       // Tránh vật cản
         
         motor_Right(0,80);
         motor_Left(1);
-        delay(50);
+        delay(150);
       }
       motor_Right(2,spd_R);
       motor_Left(2,spd_L);
@@ -352,11 +352,11 @@ void avoid_Obj(){       // Tránh vật cản
     int flag_line = getAvg()!=6 || digitalRead(line6);      // đặt flag cho các cảm biến dò line
     distance = readPing(0);
     while((getAvg()== 6 || flag_line==1 )){ // di chuyển giữ khoảng cách nhất định với vật thể đến khi gặp line
-      int spd_L = 120;
+      int spd_L = 150;
       int spd_R = 80;
       if (distance>100){
         spd_R = 80;
-        spd_L = 130;
+        spd_L = 170;
       }else 
       if (distance>15 && distance<20) {
         spd_R = 130;
@@ -364,7 +364,7 @@ void avoid_Obj(){       // Tránh vật cản
       }else if (distance<15) {
         motor_Right(1);
         motor_Left(0,80);
-        delay(50);
+        delay(150);
         spd_R = 0;
         spd_L = 0;
       }
