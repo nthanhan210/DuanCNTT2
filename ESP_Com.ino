@@ -14,8 +14,6 @@
 #include <time.h>
 #include <BlynkSimpleEsp8266.h>
 //==================================================================================
-
-
 Ticker ticker;
 
 bool longPress()
@@ -28,7 +26,6 @@ bool longPress()
   }
   return false;
 }
-
 void tick()
 {
   //toggle state
@@ -57,29 +54,26 @@ void exit_smart()
 
 char auth[] = BLYNK_AUTH_TOKEN;
 BlynkTimer timer;
-int spd=0;
-int dir=1;
+int spd,speed=0;
 int power=0;
 char ssid[100];
 char pass[100];
 
 BLYNK_WRITE(V0){
-  int speed = param.asInt();
+  speed = param.asInt();
   Serial.println(speed);
   Wire.beginTransmission(8);
   Wire.write("speed");
-  Wire.write(speed==0? 0:map(speed,1,10,75,255));
+  Wire.write(speed==0? 0:map(speed,1,6,75,100));
   Wire.endTransmission();
- //Wire.requestFrom(8, 1); /* request & read data of size 13 from slave */
 }
 BLYNK_WRITE(V2){
-  int t15 = param.asInt();
-  Serial.println(t15);
+  power = param.asInt();
+  Serial.println(power);
   Wire.beginTransmission(8);
   Wire.write("power");
-  Wire.write(t15);
+  Wire.write(power);
   Wire.endTransmission();
- //Wire.requestFrom(8, 1); /* request & read data of size 13 from slave */
 }
 BLYNK_WRITE(V1){
   int direct = param.asInt();
@@ -93,6 +87,44 @@ BLYNK_WRITE(V1){
  //Wire.requestFrom(8, 1); /* request & read data of size 13 from slave */
  
 }
+BLYNK_WRITE(V4){
+  int calib1 = param.asInt();
+  Serial.println(calib1);
+  Wire.beginTransmission(8);
+  Wire.write("calib1");
+  Wire.write(calib1);
+  Wire.endTransmission();
+ //Wire.requestFrom(8, 1); /* request & read data of size 13 from slave */
+ 
+}
+BLYNK_WRITE(V5){
+  int calib2 = param.asInt();
+  Serial.println(calib2);
+  Wire.beginTransmission(8);
+  Wire.write("calib2");
+  Wire.write(calib2);
+  Wire.endTransmission();
+ //Wire.requestFrom(8, 1); /* request & read data of size 13 from slave */
+ 
+}
+BLYNK_WRITE(V6){
+  int calib3 = param.asInt();
+  Serial.println(calib3);
+  Wire.beginTransmission(8);
+  Wire.write("calib3");
+  Wire.write(calib3);
+  Wire.endTransmission();
+ 
+}
+BLYNK_WRITE(V7){
+  int calib4 = param.asInt();
+  Serial.println(calib4);
+  Wire.beginTransmission(8);
+  Wire.write("calib4");
+  Wire.write(calib4);
+  Wire.endTransmission();
+ 
+}
 // This function is called every time the device is connected to the Blynk.Cloud
 BLYNK_CONNECTED()
 {
@@ -102,22 +134,21 @@ BLYNK_CONNECTED()
   Blynk.setProperty(V3, "url", "https://docs.blynk.io/en/getting-started/what-do-i-need-to-blynk/how-quickstart-device-was-made");
 }
 
-// This function sends Arduino's uptime every second to Virtual Pin 2.
+// This function sends Arduino's uptime every second
 void myTimerEvent()
 {
-  // You can send any value at any time.
-  // Please don't send more that 10 values per second.
-  Wire.requestFrom(8,3);
+  Wire.requestFrom(8,2);
   Blynk.virtualWrite(V3,spd);
-  Blynk.virtualWrite(V1,dir);
+  Blynk.virtualWrite(V2,power);
+  
+  Blynk.virtualWrite(V0,speed);
+  Serial.print("up");
+  Serial.println(spd);
+  
+
 }
 
 //=================================================================================================
-
-
-
-//===============================================================
-
 void setup() {
   
   Wire.begin(D1,D2);
@@ -143,7 +174,6 @@ void setup() {
       delay(500);
     }
     if (WiFi.isConnected()){
-      
       strcpy(ssid, WiFi.SSID().c_str());
       strcpy(pass, WiFi.psk().c_str());
       ticker.detach();
@@ -156,7 +186,6 @@ void setup() {
     }    
   }else {
     ticker.attach(1, tick);
-    
   }
   timer.setInterval(1000L, myTimerEvent);
   Serial.println("Setup done");
@@ -187,17 +216,14 @@ void loop() {
     }
     while(Wire.available()>0){
       power = Wire.read();
-      dir = Wire.read();
-      spd = Wire.read();
-      Serial.println(dir);
-      Serial.println(spd);      
-    }
-    
-    
+      spd = Wire.read();    
+      Serial.print("receive");
+      Serial.print(power) ;
+      Serial.println(spd) ;
+    } 
   }else {
-    
     if(!ticker.active()){
       ticker.attach(1, tick);
     }        
   }
-} 
+}
