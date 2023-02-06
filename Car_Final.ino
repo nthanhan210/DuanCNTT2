@@ -1,17 +1,17 @@
 //Khai báo các biến
 
-#define IN1	8
+#define IN1	8	// các chân điều khiển động cơ
 #define IN2	9
 #define IN3	10
 #define IN4	11
-#define line1 44
+#define line1 44	// các chân cảm biến line
 #define line2 46
 #define line3 48
 #define line4 50
 #define line5 52
-#define line6 53
-#define trig 36
-#define echo 38
+#define line6 53	
+#define trig 36		// chân trigger cảm biến siêu âm
+#define echo 38		// chân echo cảm biến siêu âm
 #define servo 12
 #define maximum_distance 150     // khoảng các lớn nhất cần đo
 #define minimum_distance 5      // khoảng các nhỏ nhất cần đo
@@ -94,14 +94,14 @@ void setup() {
 
 // Hàm điều khiển motor phải
 void motor_Right(int dir=-1, int spd=0) { 
-	if (dir == 2 && spd != 0){
+	if (dir == 2 && spd != 0){   // tiến
     digitalWrite(IN3, LOW);    
     analogWrite(IN4,spd);
     
-  }else if (dir==0 && spd != 0) {
+  }else if (dir==0 && spd != 0) {   // lùi
     digitalWrite(IN4, LOW);
     analogWrite(IN3, spd);
-  }else{
+  }else{				// đứng yên
     digitalWrite(IN3, LOW);
     digitalWrite(IN4, LOW);
   }
@@ -110,14 +110,14 @@ void motor_Right(int dir=-1, int spd=0) {
 
 // Hàm điều khiển motor trái
 void motor_Left(int dir=-1, int spd=0) { 
-	if (dir == 2 && spd != 0){
+	if (dir == 2 && spd != 0){	// tiến
     digitalWrite(IN1, LOW);    
     analogWrite(IN2,spd);
     
-  }else if (dir==0 && spd != 0) {
+  }else if (dir==0 && spd != 0) {  // lùi
     digitalWrite(IN2, LOW);
     analogWrite(IN1, spd);
-  }else{
+  }else{				// đứng yên
     digitalWrite(IN1, LOW);
     digitalWrite(IN2, LOW);
   }
@@ -193,7 +193,7 @@ int getSensitive(int avgValue){    // lây giá trị độ nhạy theo cảm bi
   }
 }
 
-int getAvg(){     // kiểm tra trạng thái dò line
+int getAvg(){     //  lấy giá trị dò line
   int sen1=digitalRead(line1);
   int sen2=digitalRead(line2);
   int sen3=digitalRead(line3);
@@ -228,7 +228,7 @@ int readPing(int main){     // đo khoảng cách
 int scan_Space(int edge = 30){    //quét vật cản, chọn hướng tránh
   int right_dis=0;
   int left_dis=0;
-  for(int i=85;i>=5;i=i-5){       // quét bên phải
+  for(int i=85;i>=5;i=i-5){       // quét bên phải đến khi không còn vật cản
     servo_motor.write(i);
     right_dis=readPing(0);
     if (right_dis>=edge){
@@ -237,7 +237,7 @@ int scan_Space(int edge = 30){    //quét vật cản, chọn hướng tránh
     }
     right_dis=i; 
   }
-  for(int i=95;i<=175;i=i+5){     //quét bên trái
+  for(int i=95;i<=175;i=i+5){     //quét bên trái đến khi không còn vật cản
     servo_motor.write(i);
     left_dis=readPing(0);  
     if (left_dis>=edge){
@@ -284,7 +284,8 @@ void avoid_Obj(){       // Tránh vật cản
     servo_motor.write(145);
     int flag_line = getAvg()!=6 || digitalRead(line6);         // đặt flag cho các cảm biến dò line
     
-    distance = readPing(0);    
+    distance = readPing(0);   
+	  // di chuyển giữ khoảng cách nhất định với vật thể đến khi gặp line
     while((getAvg()== 6 || flag_line==1 ) ){  // di chuyển giữ khoảng cách nhất định với vật thể đến khi gặp line
       int spd_L = 80;
       int spd_R = 150;
@@ -306,11 +307,13 @@ void avoid_Obj(){       // Tránh vật cản
       }
       motor_Right(2,spd_R);
       motor_Left(2,spd_L);
-      if (digitalRead(line6)==0 && getAvg()== 6){           // tắt flag khi xe hoàn toàn ra khỏi line khi bắt đầu tránh
+    	// tắt flag khi xe hoàn toàn ra khỏi line khi bắt đầu tránh
+      if (digitalRead(line6)==0 && getAvg()== 6){           
         flag_line = 0;
       }
       distance = readPing(0);
-      while(getAvg()== 6 && flag_line == 0 && digitalRead(line6)==1){    // lùi xe khi cảm biến dò line bỏ lỡ line
+	    // lùi xe khi cảm biến dò line bỏ lỡ line
+      while(getAvg()== 6 && flag_line == 0 && digitalRead(line6)==1){    
         while(getAvg()== 6){
           backward(80);
         }
@@ -351,7 +354,8 @@ void avoid_Obj(){       // Tránh vật cản
     servo_motor.write(35);
     int flag_line = getAvg()!=6 || digitalRead(line6);      // đặt flag cho các cảm biến dò line
     distance = readPing(0);
-    while((getAvg()== 6 || flag_line==1 )){ // di chuyển giữ khoảng cách nhất định với vật thể đến khi gặp line
+	   // di chuyển giữ khoảng cách nhất định với vật thể đến khi gặp line
+    while((getAvg()== 6 || flag_line==1 )){
       int spd_L = 150;
       int spd_R = 80;
       if (distance>100){
@@ -419,16 +423,16 @@ void loop() {
       }      
     }
     
-    calib = getSensitive(avg);
+    calib = getSensitive(avg);  // lấy giá trị tinh chỉnh tốc độ
     
-
-    if(speed > 0 && (speed-calib)<75){
+	// khi tốc độ động cơ thấp hơn giá trị min thì dừng động cơ
+    if(speed > 0 && (speed-calib)<75){	
       calib = speed;
     }
        
     distance = readPing(1);
     Serial.println(distance);
-    if (speed!=0 && distance >15){
+    if (speed!=0 && distance >15){    // di chuyển theo line dựa vào giá trị dò line
       // Serial.println(speed);
       if(avg>0){
         motor_Right(2,speed-calib);
@@ -441,11 +445,11 @@ void loop() {
         motor_Left(2,speed);
       }
       
-    }else if(speed!=0 && distance <15){
+    }else if(speed!=0 && distance <15){ // khi có vật cản trong 15cm
       stop();
-      delay(1000);
+      delay(1000);  //chờ 1s và quét lại
       if (readPing(1) <= 15 ){
-        avoid_Obj();
+        avoid_Obj();		// tránh vật cản
       }
     }
     
