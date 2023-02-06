@@ -153,13 +153,11 @@ void turn_Right(int spd){
 
 // các function chức năng dò line
 
-int getSensitive(int avgValue){    // lây giá trị độ nhạy theo cảm biến và tốc độ
+int getSensitive(int avgValue){    // lấy giá trị tinh chỉnh tốc độ theo giá trị dò line
   if (speed == 0){
-    return 0;
+    return 0;       //trả về 0 khi tốc độ bằng 
   }else{
-    int tmp_calib = 0;
-    
-    
+    int tmp_calib = 0;    
     switch (avgValue) {
       case 1:
         tmp_calib = map(speed, 75, 100, sensitive1[0], sensitive2[0]);
@@ -286,7 +284,7 @@ void avoid_Obj(){       // Tránh vật cản
     
     distance = readPing(0);   
 	  // di chuyển giữ khoảng cách nhất định với vật thể đến khi gặp line
-    while((getAvg()== 6 || flag_line==1 ) ){  // di chuyển giữ khoảng cách nhất định với vật thể đến khi gặp line
+    while((getAvg()== 6 || flag_line==1 ) ){  
       int spd_L = 80;
       int spd_R = 150;
       if (distance>100){
