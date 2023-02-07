@@ -104,6 +104,7 @@ void myTimerEvent()       //update các thông tin điều khiển xe lên Serve
 }
 
 //=================================================================================================
+
 void setup() {
   
   Wire.begin(D1,D2);          // Khởi tạo giao tiếp I2C
